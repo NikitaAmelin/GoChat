@@ -20,6 +20,7 @@ type clnt struct {
 var clients = make(map[*websocket.Conn]clnt)
 
 var channel = make(chan string)
+var sys_channel = make(chan string)
 
 func writeUsersMassages() {
 	for {
@@ -30,6 +31,19 @@ func writeUsersMassages() {
 				fmt.Print(fmt.Errorf("ошибка отправки сообщения %w", err))
 				client.Close()
 				delete(clients, client)
+				continue
+			}
+		}
+	}
+}
+
+func writeServerMassages() {
+	for {
+		msg := <-sys_channel
+		for client := range clients {
+			err := client.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s", msg)))
+			if err != nil {
+				fmt.Print(fmt.Errorf("ошибка отправки серверного сообщения %w", err))
 				continue
 			}
 		}
@@ -62,7 +76,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	fmt.Printf("New user %s join the chat!", msg_name)
-	channel <- fmt.Sprintf("New user, %s, join the chat!", msg_name)
+	sys_channel <- fmt.Sprintf("New user, %s, join the chat!", msg_name)
 	clients[conn] = clnt{true, msg_name}
 	for {
 		_, byte_msg, err := conn.ReadMessage()
@@ -78,6 +92,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	go writeUsersMassages()
+	go writeServerMassages()
 	http.HandleFunc("/ws", handler)
 	fmt.Println("Сервер открыт на порту :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
