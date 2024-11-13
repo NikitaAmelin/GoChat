@@ -14,7 +14,7 @@ var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 
 type clnt struct {
 	status bool
-	name   string
+	name   string `default:"void"`
 }
 
 var clients = make(map[*websocket.Conn]clnt)
@@ -25,7 +25,7 @@ func writeUsersMassages() {
 	for {
 		msg := <-channel
 		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, []byte(msg))
+			err := client.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s: %s", clients[client].name, msg)))
 			if err != nil {
 				fmt.Print(fmt.Errorf("ошибка отправки сообщения %w", err))
 				client.Close()
