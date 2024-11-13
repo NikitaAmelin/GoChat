@@ -12,7 +12,12 @@ var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 },
 }
 
-var clients = make(map[*websocket.Conn]bool)
+type clnt struct {
+	status bool
+	name   string
+}
+
+var clients = make(map[*websocket.Conn]clnt)
 
 var channel = make(chan string)
 
@@ -33,14 +38,32 @@ func writeUsersMassages() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
+	err2 := conn.WriteMessage(websocket.TextMessage, []byte("VVEDITE NAME"))
+	if err2 != nil {
+		fmt.Print(fmt.Errorf("ошибка отправки сообщения %w", err))
+		conn.Close()
+		return
+	}
+	msg_name := ""
+	for {
+		_, byte_msg, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Print(fmt.Errorf("ошибка чтения сообщения: %w", err))
+			delete(clients, conn)
+			return
+		}
+		msg_name = string(byte_msg)
+		break
+	}
 	if err != nil {
 		fmt.Println(fmt.Errorf("ошибка преобразования протокола: %w", err))
 		return
 	}
 	defer conn.Close()
-	clients[conn] = true
-	fmt.Println("New user join the chat!")
-	channel <- "New user join the chat!"
+
+	fmt.Printf("New user %s join the chat!", msg_name)
+	channel <- fmt.Sprintf("New user, %s, join the chat!", msg_name)
+	clients[conn] = clnt{true, msg_name}
 	for {
 		_, byte_msg, err := conn.ReadMessage()
 		if err != nil {

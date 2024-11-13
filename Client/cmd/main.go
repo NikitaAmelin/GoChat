@@ -30,7 +30,7 @@ func printMesseges(conn *websocket.Conn) { // отрисовка сообщен�
 }
 
 func main() {
-	addr := "ws://192.168.0.107:8080/ws"
+	addr := "ws://192.168.0.102:8080/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
 	if err != nil {
 		fmt.Print(fmt.Errorf("не удалось подключиться к серверу: %w", err))
