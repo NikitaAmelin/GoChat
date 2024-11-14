@@ -1,16 +1,33 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
 
-func writeMesseges(conn *websocket.Conn) {
+type Messege struct {
+	Data     string `json:"data"`
+	Username string `json:"username"`
+}
+
+type User struct {
+	name string
+}
+
+func writeMesseges(conn *websocket.Conn, name string) {
 	for {
-		var msg string
-		fmt.Scan(&msg)
-		err := conn.WriteMessage(websocket.TextMessage, []byte(msg))
+		msg := Messege{Username: name}
+		var err error
+		r := bufio.NewReader(os.Stdin)
+		msg.Data, err = r.ReadString('\n')
+		if err != nil {
+			fmt.Print(fmt.Errorf("ошибка считывания сообщения: %w", err))
+			return
+		}
+		err = conn.WriteJSON(msg)
 		if err != nil {
 			fmt.Print(fmt.Errorf("ошибка отправки сообщения: %w", err))
 			return
@@ -25,17 +42,20 @@ func printMesseges(conn *websocket.Conn) { // отрисовка сообщен�
 		if err != nil {
 			fmt.Print(fmt.Errorf("ошибка чтения сообщения: %w", err))
 		}
-		fmt.Println(msg)
+		fmt.Print(msg)
 	}
 }
 
 func main() {
-	addr := "ws://192.168.0.107:8080/ws"
+	addr := "ws://localhost:8080/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
 	if err != nil {
 		fmt.Print(fmt.Errorf("не удалось подключиться к серверу: %w", err))
 	}
 	defer conn.Close()
-	go writeMesseges(conn)
+	var name string
+	fmt.Print("Введите ваше имя: ")
+	fmt.Scan(&name)
+	go writeMesseges(conn, name)
 	printMesseges(conn)
 }

@@ -16,11 +16,16 @@ var clients = make(map[*websocket.Conn]bool)
 
 var channel = make(chan string)
 
+type Messege struct {
+	Data     string `json:"data"`
+	Username string `json:"username"`
+}
+
 func writeUsersMassages() {
 	for {
-		msg := <-channel
+		txt_msg := <-channel
 		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, []byte(msg))
+			err := client.WriteMessage(websocket.TextMessage, []byte(txt_msg))
 			if err != nil {
 				fmt.Print(fmt.Errorf("ошибка отправки сообщения %w", err))
 				client.Close()
@@ -42,14 +47,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New user join the chat!")
 	channel <- "New user join the chat!"
 	for {
-		_, byte_msg, err := conn.ReadMessage()
+		var msg Messege
+		err := conn.ReadJSON(&msg)
 		if err != nil {
 			fmt.Print(fmt.Errorf("ошибка чтения сообщения: %w", err))
 			delete(clients, conn)
 			return
 		}
-		msg := string(byte_msg)
-		channel <- msg
+		channel <- msg.Username + ": " + msg.Data
 	}
 }
 
