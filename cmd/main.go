@@ -16,6 +16,11 @@ var clients = make(map[*websocket.Conn]bool)
 
 var channel = make(chan string)
 
+type Messege struct {
+	Data     string `json:"data"`
+	Username string `json:"username"`
+}
+
 func writeUsersMassages() {
 	for {
 		txt_msg := <-channel
@@ -63,6 +68,7 @@ func main() {
 	}
 }
 
+
 /*
 БД
 Точка входа (main)
@@ -71,7 +77,7 @@ Bind нужная вещь
 internal   !
 internal/domain (структуры)
 intternal/app (сервисы с бизнес-логикой, как храним, что храним, где храним)
-intternal/app/media-task.go
+intternal/app/media-task.go 
 GetMediaTask
 разобраться с cookie
 разобраться, как работать с постгрой
@@ -88,7 +94,7 @@ Ubuntu, docker, git, go
 dockercompous.yaml
 
 internal/
-domain (реквесты, респонзы, структуры)
+domain (реквесты, респонзы)
 
 ports (входные данные)   api.go (что происходит с запросом) глягуть легенды
 
@@ -103,4 +109,6 @@ postgress на порту 5432 по умолчанию
 goSQLmigrate
 goose
 
-папка миграции*/
+папка миграции
+/*
+>>>>>>> 4d65f15d0c766a2ca2f351bdf4b2013d30fd29e5
