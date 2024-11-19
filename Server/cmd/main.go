@@ -1,10 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/gorilla/websocket"
+	postgresql "goydamess/GoChat/pkg/data_base"
+	"net/http"
 )
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
@@ -91,6 +92,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	client, err := postgresql.NewClient()(context.TODO(), 3, "postgres", "post1212", "localhost", "8080", "Chat_db")
 	go writeUsersMassages()
 	go writeServerMassages()
 	http.HandleFunc("/ws", handler)
