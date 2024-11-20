@@ -1,4 +1,4 @@
-package user
+package userFunc
 
 import (
 	"context"
@@ -12,8 +12,8 @@ type repository struct {
 	client postgresql.Client
 }
 
-func (r repository) Create(ctx context.Context, usr *user.User) error {
-	q := `INSERT INTO "Users" ("Login", "Password") VALUES ($1, $2)`
+func (r repository) CreateUser(ctx context.Context, usr *user.User) error {
+	q := `INSERT INTO "Users" ("Login", "Password") VALUES ($1, $2) RETURNING id`
 	if err := r.client.QueryRow(ctx, q, usr.Login, usr.Password).Scan(&usr.ID); err != nil {
 		if pgerr, ok := err.(*pgconn.PgError); ok {
 			newerr := fmt.Errorf(fmt.Sprintf("SQL error: %s, detail: %s, where: %s, code:%s", pgerr.Message, pgerr.Detail, pgerr.Where, pgerr.Code))
@@ -25,7 +25,7 @@ func (r repository) Create(ctx context.Context, usr *user.User) error {
 	return nil
 }
 
-func (r repository) FindAll(ctx context.Context) (users []user.User, err error) {
+func (r repository) FindAllUsers(ctx context.Context) (users []user.User, err error) {
 	q := `SELECT ID, "Login", "Password" from "Users"`
 	rows, err := r.client.Query(ctx, q)
 	if err != nil {
@@ -47,8 +47,8 @@ func (r repository) FindAll(ctx context.Context) (users []user.User, err error) 
 	return users, nil
 }
 
-func (r repository) FindOne(ctx context.Context, id string) (user.User, error) {
-	q := `SELECT ID, "Login", "Password" from "Users" WHERE id = $1`
+func (r repository) FindUserByID(ctx context.Context, id string) (user.User, error) {
+	q := `SELECT id, "Login", "Password" from "Users" WHERE id = $1`
 	var usr user.User
 	err := r.client.QueryRow(ctx, q, id).Scan(&usr.ID, &usr.Login, &usr.Password)
 	if err != nil {
