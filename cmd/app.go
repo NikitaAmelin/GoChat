@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"goydamess/GoChat/internal/TablesDB"
 	"goydamess/GoChat/internal/domain"
+	postgresql "goydamess/GoChat/pkg/data_base"
 	"net/http"
 )
 
@@ -41,7 +44,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New user join the chat!")
 	channel <- "New user join the chat!"
 	for {
-		var msg domain.Messege
+		var msg domain.Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			fmt.Print(fmt.Errorf("ошибка чтения сообщения: %w", err))
@@ -54,12 +57,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	/*postgreSQLclient, err := postgresql.NewClient(context.TODO(), 3, "postgres", "post1212", "localhost", "8080", "Chat_db")
+	postgreSQLclient, err := postgresql.NewClient(context.TODO(), 3, "postgres", "post1212", "localhost", "8080", "Chat_db")
 	if err != nil {
 		fmt.Print(fmt.Errorf("не удалось запустить postgres: %w", err))
 		return
 	}
-	rep := userFunc.NewRepository(postgreSQLclient) //TODO создание клиента в постгресе
+	rep := TablesDB.Repository{Client: postgreSQLclient}
+	err = rep.CreateUsersTable(context.TODO())
+	if err != nil {
+		fmt.Println(fmt.Errorf("не удалось создать таблицу Users в postgres: %w", err))
+		return
+	}
+	/*rep := userFunc.NewRepository(postgreSQLclient) //TODO репозиторий пользователя в постгресе
 
 	u1 := user.User{
 		Login:    "Ruslan",

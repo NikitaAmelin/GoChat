@@ -1,6 +1,6 @@
 package domain
 
-type Messege struct {
+type Message struct {
 	Data     string `json:"data"`
 	Username string `json:"username"`
 }
