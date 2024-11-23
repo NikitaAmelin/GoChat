@@ -68,6 +68,11 @@ func main() {
 		fmt.Println(fmt.Errorf("не удалось создать таблицу Users в postgres: %w", err))
 		return
 	}
+	err = rep.CreateChatsTable(context.TODO())
+	if err != nil {
+		fmt.Println(fmt.Errorf("не удалось создать таблицу Chats в postgres: %w", err))
+		return
+	}
 	/*rep := userFunc.NewRepository(postgreSQLclient) //TODO репозиторий пользователя в постгресе
 
 	u1 := user.User{

@@ -41,24 +41,24 @@ func (r repository) CreateChat(ctx context.Context, chat *chat.Chat, pgclient *p
 	return nil
 }
 
-func (r repository) FindMembers(ctx context.Context) (members []string, err error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (r repository) FindChatByID(ctx context.Context, id string) (chat.Chat, error) {
-	//TODO implement me
-	panic("implement me")
+	q := `SELECT id, "Name", "Members", "NameMessegesDB" from "Users" WHERE id = $1`
+	var cht chat.Chat
+	err := r.client.QueryRow(ctx, q, id).Scan(&cht.ID, &cht.Name, &cht.Members, &cht.NameMessegesDB)
+	if err != nil {
+		return chat.Chat{}, err
+	}
+	return cht, nil
 }
 
-func (r repository) AddMember(ctx context.Context, chat *chat.Chat) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r repository) CreateMessegesDB(ctx context.Context, chat *chat.Chat) {
-	//TODO implement me
-	panic("implement me")
+func (r repository) AddMember(ctx context.Context, chat *chat.Chat, usrID string) error {
+	chat.Members = append(chat.Members, usrID)
+	q := `INSERT INTO "Chats" ("Members") VALUES ($1)`
+	_, err := r.client.Exec(ctx, q, chat.Members)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewRepository(client postgresql.Client) chat.Repository {
