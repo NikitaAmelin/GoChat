@@ -73,29 +73,6 @@ func main() {
 		fmt.Println(fmt.Errorf("не удалось создать таблицу Chats в postgres: %w", err))
 		return
 	}
-	/*rep := userFunc.NewRepository(postgreSQLclient) //TODO репозиторий пользователя в постгресе
-
-	u1 := user.User{
-		Login:    "Ruslan",
-		Password: "1wq2",
-	}
-	err = rep.CreateUser(context.TODO(), &u1) //пример создания, id записывается в u1.ID
-	if err != nil {
-		fmt.Print(fmt.Errorf("не удалось создать пользователя: %w", err))
-		return
-	}
-	fmt.Println(u1.ID)
-
-	all, err := rep.FindAllUsers(context.TODO()) //пример поиска всех пользователей в базе
-	if err != nil {
-		fmt.Print(fmt.Errorf("не удалось найти пользователей: %w", err))
-		return
-	}
-	for _, usr := range all {
-		fmt.Println(usr)
-	}
-	u2, err := rep.FindUserByID(context.TODO(), "de618c38-9cf7-498b-9d98-eb6433ef09e9") //пример поиска пользователей в базе по id
-	fmt.Printf("id: %s, log: %s, pass: %s", u2.ID, u2.Login, u2.Password)*/
 
 	go writeUsersMassages()
 	http.HandleFunc("/ws", handler)

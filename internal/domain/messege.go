@@ -1,4 +1,4 @@
-package messege
+package domain
 
 type Messege struct {
 	ID            string   `json:"ID"`

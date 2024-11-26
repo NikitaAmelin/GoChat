@@ -1,6 +1,7 @@
-package user
+package domain
 
-type CreateUserDTO struct {
+type User struct {
+	ID       string `json:"ID"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }

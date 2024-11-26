@@ -1,4 +1,4 @@
-package chat
+package domain
 
 type Chat struct {
 	ID             string   `json:"ID"`
