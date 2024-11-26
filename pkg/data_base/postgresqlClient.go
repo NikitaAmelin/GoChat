@@ -3,12 +3,13 @@ package postgresql
 import (
 	"context"
 	"fmt"
+	repeatable "goydamess/pkg/utils"
+	"log"
+	"time"
+
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"goydamess/GoChat/pkg/utils"
-	"log"
-	"time"
 )
 
 type Client interface {

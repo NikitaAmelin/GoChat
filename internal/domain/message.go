@@ -1,6 +1,10 @@
 package domain
 
 type Message struct {
-	Data     string `json:"data"`
-	Username string `json:"username"`
+	ID             string   `json:"ID"`
+	Author         string   `json:"author"`
+	Text           string   `json:"text"`
+	TimeOfSending  string   `json:"timeOfSending"`
+	Viewed         []string `json:"viewed"`
+	NameMessagesDB string   `json:"nameMessegesDB"`
 }

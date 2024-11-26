@@ -2,7 +2,7 @@ package TablesDB
 
 import (
 	"context"
-	"goydamess/GoChat/pkg/data_base"
+	postgresql "goydamess/pkg/data_base"
 )
 
 type Repository struct {

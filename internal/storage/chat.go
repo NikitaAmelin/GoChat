@@ -3,10 +3,11 @@ package storage
 import (
 	"context"
 	"fmt"
+	"goydamess/internal/TablesDB"
+	"goydamess/internal/domain"
+	postgresql "goydamess/pkg/data_base"
+
 	"github.com/jackc/pgconn"
-	"goydamess/GoChat/internal/TablesDB"
-	"goydamess/GoChat/internal/domain"
-	postgresql "goydamess/GoChat/pkg/data_base"
 )
 
 type ChatStorage interface {
@@ -26,15 +27,15 @@ func (s *storage) CreateChat(ctx context.Context, chat *domain.Chat, pgclient *p
 		return err
 	}
 
-	nameMessegesDB := fmt.Sprintf("History_%s", chat.ID)
+	nameMessagesDB := fmt.Sprintf("History_%s", chat.ID)
 	q2 := `INSERT INTO "Chats" ("NameMessegesDB") VALUES ($1)`
-	_, err := s.Client.Exec(ctx, q2, nameMessegesDB)
+	_, err := s.Client.Exec(ctx, q2, nameMessagesDB)
 	if err != nil {
 		return err
 	}
-	chat.NameMessegesDB = nameMessegesDB
+	chat.NameMessagesDB = nameMessagesDB
 	rep := TablesDB.Repository{Client: *pgclient}
-	err = rep.CreateMessegesTable(context.TODO(), nameMessegesDB)
+	err = rep.CreateMessegesTable(context.TODO(), nameMessagesDB)
 	if err != nil {
 		fmt.Println(fmt.Errorf("не удалось создать таблицу Messeges для чата %s: %w", chat.Name, err))
 		return err
@@ -46,7 +47,7 @@ func (s *storage) CreateChat(ctx context.Context, chat *domain.Chat, pgclient *p
 func (s *storage) FindChatByID(ctx context.Context, id string) (domain.Chat, error) {
 	q := `SELECT id, "Name", "Members", "NameMessegesDB" from "Users" WHERE id = $1`
 	var cht domain.Chat
-	err := s.Client.QueryRow(ctx, q, id).Scan(&cht.ID, &cht.Name, &cht.Members, &cht.NameMessegesDB)
+	err := s.Client.QueryRow(ctx, q, id).Scan(&cht.ID, &cht.Name, &cht.Members, &cht.NameMessagesDB)
 	if err != nil {
 		return domain.Chat{}, err
 	}

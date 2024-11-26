@@ -1,23 +1,21 @@
 package storage
 
-import (
-	postgresql "goydamess/GoChat/pkg/data_base"
-)
+import postgresql "goydamess/pkg/data_base"
 
 type Storage interface {
 	UserStorage
 	ChatStorage
-	MessegeStorage
+	MessageStorage
 }
 
 type storage struct {
 	Client  postgresql.Client
 	User    UserStorage
 	Chat    ChatStorage
-	Messege MessegeStorage
+	Messege MessageStorage
 }
 
-func NewStorage(client postgresql.Client, user UserStorage, chat ChatStorage, messege MessegeStorage) Storage {
+func NewStorage(client postgresql.Client, user UserStorage, chat ChatStorage, messege MessageStorage) Storage {
 	return &storage{
 		Client:  client,
 		User:    user,

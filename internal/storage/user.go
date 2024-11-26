@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
+	"goydamess/internal/domain"
+
 	"github.com/jackc/pgconn"
-	"goydamess/GoChat/internal/domain"
 )
 
 type UserStorage interface {
