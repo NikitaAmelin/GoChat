@@ -23,6 +23,9 @@ func main() {
 	s := storage.NewStorage(postgreSQLclient, user, chat, mess)
 	var upgrader websocket.Upgrader
 	handler := handlers.NewHandler(&s, &upgrader)
-	http.HandleFunc("/ws/send/message", handler.NewMessage)
 	http.HandleFunc("/ws/user/auth/login", handler.Login)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		fmt.Print(fmt.Errorf("не удалось открыть сервер: %w", err))
+		return
+	}
 }
