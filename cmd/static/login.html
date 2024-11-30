@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма входа</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #ansDisplay {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h2>Вход</h2>
+<form id="loginForm">
+    <label for="login">Логин:</label>
+    <input type="text" id="login" name="login" required>
+    <br><br>
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+    <button type="submit">Войти</button>
+</form>
+<div id="ansDisplay"></div>
+
+<script>
+    // Создаем новый WebSocket
+    const socket = new WebSocket('ws://localhost:8080/ws/user/auth/login/');
+
+    // Обработчик события окончания соединения
+    socket.onopen = function (event) {
+        console.log("Соединение установлено.");
+    };
+
+    // Обработчик получения сообщения
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        if (data.Answer) {
+            document.getElementById('ansDisplay').innerText = data.Answer;
+        } else {
+            document.getElementById('ansDisplay').innerText = 'Ошибка входа';
+        }
+    };
+
+    // Обработчик ошибки
+    socket.onerror = function (error) {
+        console.error("Ошибка WebSocket:", error);
+    };
+
+    // Обработчик закрытия соединения
+    socket.onclose = function (event) {
+        console.log("Соединение закрыто.");
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+
+        // Отправляем данные логина и пароля через WebSocket
+        socket.send(JSON.stringify({
+            login: login,
+            password: password
+        }));
+    });
+</script>
+</body>
+</html>
