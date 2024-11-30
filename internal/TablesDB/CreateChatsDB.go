@@ -15,8 +15,6 @@ CREATE TABLE IF NOT EXISTS public."Chats"
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public."Chats"
-    OWNER to postgres;
 `
 
 	_, err := r.Client.Exec(ctx, q)

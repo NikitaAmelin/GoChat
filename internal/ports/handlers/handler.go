@@ -17,10 +17,11 @@ type WSHandler struct {
 	OnlineUsers map[*websocket.Conn]bool
 }
 
-func NewHandler(s *storage.Storage, u *websocket.Upgrader) *WSHandler {
+func NewHandler(s storage.Storage, u websocket.Upgrader) *WSHandler {
 	return &WSHandler{
-		Storage:  *s,
-		Upgrader: *u,
+		Storage:     s,
+		Upgrader:    u,
+		OnlineUsers: make(map[*websocket.Conn]bool),
 	}
 }
 
@@ -33,9 +34,11 @@ func NewHandler(s *storage.Storage, u *websocket.Upgrader) *WSHandler {
 }*/
 
 func (h *WSHandler) Login(w http.ResponseWriter, r *http.Request) {
+	h.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := h.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(fmt.Errorf("ошибка преобразования протокола: %w", err))
+		return
 	}
 	fmt.Println("Пользователь подключён")
 	h.OnlineUsers[conn] = true

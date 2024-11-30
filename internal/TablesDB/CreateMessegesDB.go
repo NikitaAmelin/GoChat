@@ -19,8 +19,6 @@ CREATE TABLE IF NOT EXISTS public.$1
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.$1
-    OWNER to postgres;
 `
 
 	_, err := r.Client.Exec(ctx, q, name, fmt.Sprintf("%s_pkay", name))
