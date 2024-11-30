@@ -33,6 +33,58 @@ func NewHandler(s storage.Storage, u websocket.Upgrader) *WSHandler {
 	}
 }*/
 
+func (h *WSHandler) Register(w http.ResponseWriter, r *http.Request) {
+	h.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := h.Upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(fmt.Errorf("ошибка преобразования протокола: %w", err))
+		return
+	}
+	fmt.Println("Пользователь подключён на регистрацию")
+	//h.OnlineUsers[conn] = true
+	var user domain.User
+	for {
+		err = conn.ReadJSON(&user)
+		if err != nil {
+			fmt.Println(fmt.Errorf("ошибка входа на сайт: %w", err))
+			return
+		}
+		// если пользователь существует -> предупреждение, иначе -> пишем в базу
+		flag, err := h.Storage.CheckIfExist(context.TODO(), user.Login)
+		if err != nil {
+			fmt.Println(fmt.Errorf("ошибка проверки наличия пользователя: %w", err))
+			return
+		}
+		if flag {
+			answ := fmt.Sprintf("Пользователь %s уже существует", user.Login)
+			fmt.Println(answ)
+			a := response.Answer{
+				Answer: answ,
+			}
+			err = conn.WriteJSON(&a)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+				return
+			}
+		} else {
+
+			err = h.Storage.CreateUser(context.TODO(), &user)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка добавления пользователя: %w", err))
+				return
+			}
+			a := response.Answer{
+				Answer: user.ID,
+			}
+			err = conn.WriteJSON(&a)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+				return
+			}
+		}
+	}
+}
+
 func (h *WSHandler) Login(w http.ResponseWriter, r *http.Request) {
 	h.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := h.Upgrader.Upgrade(w, r, nil)
@@ -40,23 +92,49 @@ func (h *WSHandler) Login(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(fmt.Errorf("ошибка преобразования протокола: %w", err))
 		return
 	}
-	fmt.Println("Пользователь подключён")
+	fmt.Println("Пользователь подключён на вход")
 	h.OnlineUsers[conn] = true
 	var user domain.User
 	err = conn.ReadJSON(&user)
 	if err != nil {
 		fmt.Println(fmt.Errorf("ошибка входа на сайт: %w", err))
-		conn.Close()
-		delete(h.OnlineUsers, conn)
+		return
 	}
-	err = h.Storage.CreateUser(context.TODO(), &user)
+	// если пользователь существует -> вход в его аккаунт, иначе -> предупреждение
+	flag, err := h.Storage.CheckIfExist(context.TODO(), user.Login)
 	if err != nil {
-		fmt.Println(fmt.Errorf("ошибка добавления пользователя: %w", err))
-		conn.Close()
-		delete(h.OnlineUsers, conn)
+		fmt.Println(fmt.Errorf("ошибка проверки наличия пользователя: %w", err))
+		return
 	}
-	id := response.ID{
-		ID: user.ID,
+	if !flag {
+		answ := fmt.Sprintf("Пользователь %s не существует", user.Login)
+		fmt.Println(answ)
+		a := response.Answer{
+			Answer: answ,
+		}
+		err = conn.WriteJSON(&a)
+		if err != nil {
+			fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+			return
+		}
+	} else {
+		var user_from_db domain.User
+		user_from_db, err = h.Storage.FindUserByLogin(context.TODO(), user.Login)
+		if err != nil {
+			fmt.Println(fmt.Errorf("ошибка добавления пользователя: %w", err))
+			return
+		}
+		if user.Password != user_from_db.Password {
+			answ := fmt.Sprintf("Пользователь %s уже существует", user.Login)
+			fmt.Println(answ)
+			answer := response.Answer{
+				Answer: answ,
+			}
+			err = conn.WriteJSON(&answer)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+				return
+			}
+		}
 	}
-	conn.WriteJSON(&id)
 }

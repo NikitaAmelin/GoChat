@@ -31,6 +31,7 @@ func main() {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024}
 	handler := handlers.NewHandler(s, upgrader)
+	http.HandleFunc("/ws/user/auth/register/", handler.Register)
 	http.HandleFunc("/ws/user/auth/login/", handler.Login)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Print(fmt.Errorf("не удалось открыть сервер: %w", err))
