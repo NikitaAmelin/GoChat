@@ -7,39 +7,98 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
         }
 
         #ansDisplay {
             margin-top: 20px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
+            color: #d9534f;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<h2>Регистрация</h2>
-<form id="loginForm">
-    <label for="login">Логин:</label>
-    <input type="text" id="login" name="login" required>
-    <br><br>
-    <label for="password">Пароль:</label>
-    <input type="password" id="password" name="password" required>
-    <br><br>
-    <button type="submit">Зарегистрироваться</button>
-</form>
-<div id="ansDisplay"></div>
+<div class="container">
+    <h2>Регистрация</h2>
+    <form id="loginForm">
+        <label for="login">Логин:</label>
+        <input type="text" id="login" name="login" required>
+
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+    <div id="ansDisplay"></div>
+</div>
+
+<button onclick="location.href='index.html'" style="position: absolute; top: 20px; left: 20px;">На главную</button>
 
 <script>
-    // Создаем новый WebSocket
     const socket = new WebSocket('ws://localhost:8080/ws/user/auth/register/');
 
-    // Обработчик события окончания соединения
     socket.onopen = function (event) {
         console.log("Соединение установлено.");
     };
 
-    // Обработчик получения сообщения
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (data.Answer) {
@@ -49,12 +108,10 @@
         }
     };
 
-    // Обработчик ошибки
     socket.onerror = function (error) {
         console.error("Ошибка WebSocket:", error);
     };
 
-    // Обработчик закрытия соединения
     socket.onclose = function (event) {
         console.log("Соединение закрыто.");
     };
@@ -65,7 +122,6 @@
         const login = document.getElementById('login').value;
         const password = document.getElementById('password').value;
 
-        // Отправляем данные логина и пароля через WebSocket
         socket.send(JSON.stringify({
             login: login,
             password: password

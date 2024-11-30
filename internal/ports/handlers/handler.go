@@ -95,37 +95,42 @@ func (h *WSHandler) Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Пользователь подключён на вход")
 	h.OnlineUsers[conn] = true
 	var user domain.User
-	err = conn.ReadJSON(&user)
-	if err != nil {
-		fmt.Println(fmt.Errorf("ошибка входа на сайт: %w", err))
-		return
-	}
-	// если пользователь существует -> вход в его аккаунт, иначе -> предупреждение
-	flag, err := h.Storage.CheckIfExist(context.TODO(), user.Login)
-	if err != nil {
-		fmt.Println(fmt.Errorf("ошибка проверки наличия пользователя: %w", err))
-		return
-	}
-	if !flag {
-		answ := fmt.Sprintf("Пользователь %s не существует", user.Login)
-		fmt.Println(answ)
-		a := response.Answer{
-			Answer: answ,
-		}
-		err = conn.WriteJSON(&a)
+	for {
+		err = conn.ReadJSON(&user)
 		if err != nil {
-			fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+			fmt.Println(fmt.Errorf("ошибка входа на сайт: %w", err))
 			return
 		}
-	} else {
-		var user_from_db domain.User
-		user_from_db, err = h.Storage.FindUserByLogin(context.TODO(), user.Login)
+		// если пользователь существует -> вход в его аккаунт, иначе -> предупреждение
+		flag, err := h.Storage.CheckIfExist(context.TODO(), user.Login)
 		if err != nil {
-			fmt.Println(fmt.Errorf("ошибка добавления пользователя: %w", err))
+			fmt.Println(fmt.Errorf("ошибка проверки наличия пользователя: %w", err))
 			return
 		}
-		if user.Password != user_from_db.Password {
-			answ := fmt.Sprintf("Пользователь %s уже существует", user.Login)
+		if !flag {
+			answ := fmt.Sprintf("Пользователь %s не существует", user.Login)
+			fmt.Println(answ)
+			a := response.Answer{
+				Answer: answ,
+			}
+			err = conn.WriteJSON(&a)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка связи с сайтом: %w", err))
+				return
+			}
+		} else {
+			var userFromDb domain.User
+			userFromDb, err = h.Storage.FindUserByLogin(context.TODO(), user.Login)
+			if err != nil {
+				fmt.Println(fmt.Errorf("ошибка добавления пользователя: %w", err))
+				return
+			}
+			var answ string
+			if user.Password != userFromDb.Password {
+				answ = fmt.Sprintf("Неверный пароль для %s", user.Login)
+			} else {
+				answ = fmt.Sprintf("Вы успешно вошли в аккаунт %s", user.Login)
+			}
 			fmt.Println(answ)
 			answer := response.Answer{
 				Answer: answ,
