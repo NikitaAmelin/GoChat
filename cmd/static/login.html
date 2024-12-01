@@ -104,6 +104,11 @@
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (data.Answer) {
+            if (data.Answer.slice(0, 3) === "200"){
+                localStorage.setItem('userName', data.Answer.substring(4));
+                window.location.href = 'profile.html';
+                //location.href='index.html'
+            }
             document.getElementById('ansDisplay').innerText = data.Answer;
         } else {
             document.getElementById('ansDisplay').innerText = 'Ошибка входа';
