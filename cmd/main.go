@@ -1,48 +1,39 @@
 package main
 
 import (
-	"My_local_chat/internal/app"
-	"My_local_chat/internal/domain"
+	"context"
 	"fmt"
+	"goydamess/internal/ports/handlers"
+	"goydamess/internal/storage"
+	postgresql "goydamess/pkg/data_base"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]bool)
-
-var channel = make(chan string)
-
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	}
-	conn, err := upgrader.Upgrade(w, r, nil)
+func main() {
+	postgreSQLclient, err := postgresql.NewClient(context.TODO(), 3, "user", "qwerty", "localhost", "5433", "gochat")
 	if err != nil {
-		fmt.Println(fmt.Errorf("ошибка преобразования протокола: %w", err))
+		fmt.Print(fmt.Errorf("не удалось запустить postgres: %w", err))
 		return
 	}
-	defer conn.Close()
-	clients[conn] = true
-	fmt.Println("New user join the chat!")
-	channel <- "New user join the chat!"
-	for {
-		var msg domain.Messege
-		err := conn.ReadJSON(&msg)
-		if err != nil {
-			fmt.Print(fmt.Errorf("ошибка чтения сообщения: %w", err))
-			delete(clients, conn)
-			return
-		}
-		channel <- msg.Username + ": " + msg.Data
-	}
-}
-
-func main() {
-	go app.WriteUsersMassages(clients, channel)
-	http.HandleFunc("/ws", handleConnections)
-	fmt.Println("Сервер открыт на порту :8080")
+	//rep := TablesDB.Repository{postgreSQLclient}
+	//err = rep.CreateUsersTable(context.TODO())
+	//if err != nil {
+	//	fmt.Print(fmt.Errorf("не удалось coздать таблицу users: %w", err))
+	//	return
+	//}
+	var user storage.UserStorage
+	var chat storage.ChatStorage
+	var mess storage.MessageStorage
+	s := storage.NewStorage(postgreSQLclient, user, chat, mess)
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024}
+	handler := handlers.NewHandler(s, upgrader)
+	http.HandleFunc("/ws/user/auth/register/", handler.Register)
+	http.HandleFunc("/ws/user/auth/login/", handler.Login)
+	http.HandleFunc("/ws/user/profile/", handler.Profile)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Print(fmt.Errorf("не удалось открыть сервер: %w", err))
 		return
